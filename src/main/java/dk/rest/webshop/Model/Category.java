@@ -16,7 +16,6 @@ public class Category {
     String name;
 
     @ManyToMany(mappedBy = "categories", cascade = CascadeType.ALL)
-    //prøv uden det lort
     @JsonIgnore
     Set<Product> products;
 
