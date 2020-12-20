@@ -66,6 +66,44 @@ public class RestProductController {
     }
 
     // HTTP PUT, ie. update
+    @PutMapping("/product/{id}")
+    public ResponseEntity<String> update(@PathVariable("id") Long id, @RequestBody Product p){
+        //get recipeById
+        Optional<Product> optionalProduct = productRepo.findById(id);
+        if (!optionalProduct.isPresent()){
+            //Recipe id findes ikke
+            return ResponseEntity.status(404).body("{'msg':'Not found'");
+        }
 
-    // HTTP Delete
+        //opdater category, ingredient og notes sker automatisk - nu er relationen oprettet
+        //save recipe
+        productRepo.save(p);
+        return ResponseEntity.status(204).body("{'msg':'Updated'}");
+    }
+
+    // HTTPDelete
+    @DeleteMapping("/product/{id}")
+    public ResponseEntity<String> delete(@PathVariable Long id){
+        Optional<Product> product = productRepo.findById(id);
+        //check at opskriften findes
+        if(!product.isPresent()){
+            return ResponseEntity.status(404).body("{'msg':'Not found'"); // Not found
+        }
+
+        Product p = product.get();
+        //slet først referencerne til recipe i categories
+        for (Category category: p.getCategories()){
+            category.getProducts().remove(p);
+        }
+        //derefter kan categories slettes fra recipe
+        p.setCategories(null);
+
+        //og opdateres (nu uden category mappings)
+        productRepo.save(p);
+
+        //til sidst kan recipe slettes uden at bryde referentiel integritet
+        productRepo.deleteById(id);
+
+        return ResponseEntity.status(200).body("{'msg':'Deleted'}");
+    }
 }
